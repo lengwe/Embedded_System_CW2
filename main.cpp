@@ -49,14 +49,17 @@ const int8_t stateMap[] = {0x07,0x05,0x03,0x04,0x01,0x00,0x02,0x07};
 
 //Phase lead to make motor spin
 const int8_t lead = 2;  //2 for forwards, -2 for backwards
+volatile int8_t orState = 0;    //Rotot offset at motor state 0
+volatile int8_t intState = 0;
+volatile int8_t intStateOld = 0;
 
 //Status LED
 DigitalOut led1(LED1);
 
 //Photointerrupter inputs
-DigitalIn I1(I1pin);
-DigitalIn I2(I2pin);
-DigitalIn I3(I3pin);
+InterruptIn I1(I1pin);
+InterruptIn I2(I2pin);
+InterruptIn I3(I3pin);
 
 //Motor Drive outputs
 DigitalOut L1L(L1Lpin);
@@ -106,13 +109,29 @@ int8_t motorHome() {
     //Get the rotor state
     return readRotorState();
 }
+
+void GetSate_interrupt(){    
+    intState = stateMap[I1 + 2*I2 + 4*I3];
+    motorOut((intState-orState+lead+6)%6); //+6 to make sure the remainder is positive
+    }
+
+void ISR(void){
+        I1.rise(&GetSate_interrupt);
+        I1.fall(&GetSate_interrupt);
+        I2.rise(&GetSate_interrupt);
+        I2.fall(&GetSate_interrupt); 
+        I3.rise(&GetSate_interrupt);
+        I3.fall(&GetSate_interrupt);
+    }
+
+
     
 //Main
 int main() {
-    int8_t orState = 0;    //Rotot offset at motor state 0
-    int8_t intState = 0;
-    int8_t intStateOld = 0;
-    
+//    int8_t orState = 0;    //Rotot offset at motor state 0
+//    int8_t intState = 0;
+//    int8_t intStateOld = 0;
+//    
     const int32_t PWM_PRD = 2500;
     MotorPWM.period_us(PWM_PRD);
     MotorPWM.pulsewidth_us(PWM_PRD);
@@ -126,13 +145,20 @@ int main() {
     pc.printf("Rotor origin: %x\n\r",orState);
     //orState is subtracted from future rotor state inputs to align rotor and motor states
     
+    MotorPWM.pulsewidth_us(PWM_PRD/2);
     //Poll the rotor state and set the motor outputs accordingly to spin the motor
+    ISR();
     while (1) {
-        intState = readRotorState();
-        if (intState != intStateOld) {
-            motorOut((intState-orState+lead+6)%6); //+6 to make sure the remainder is positive
-            intStateOld = intState;
-        }
+        
+        //intState = readRotorState();
+
+        
+//        if (intState != intStateOld) {
+//            //motorOut((intState-orState+lead+6)%6); //+6 to make sure the remainder is positive
+//            if (intState == 4 && intStateOld == 3) TP1 = !TP1;
+//            intStateOld = intState;
+            pc.printf("hello eat %d Pi!\n\r",intState);
+//        }
     }
 }
 
