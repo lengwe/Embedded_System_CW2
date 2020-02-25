@@ -54,7 +54,11 @@ const int8_t lead = 2;  //2 for forwards, -2 for backwards
 volatile int8_t orState = 0;    //Rotot offset at motor state 0
 volatile int8_t intState = 0;
 volatile int8_t intStateOld = 0;
-volatile counter = 0;
+volatile uint32_t counter = 0;
+
+//Initialise the serial port
+Serial pc(SERIAL_TX, SERIAL_RX);
+
 
 //Status LED
 DigitalOut led1(LED1);
@@ -126,18 +130,9 @@ void ISR(void){
         I3.rise(&GetSate_interrupt);
         I3.fall(&GetSate_interrupt);
     }
-
-void computation(){
-        SHA256::computeHash(hash,sequence,64);
-        if(hash[0]==0 && hash[1]==0){
-            pc.printf("Nonce is: %x\r\n",*nonce);
-        }
-        *nonce+=1;
-        counter+=1;
-    }
-
+    
 void HashRate(){
-        pc.printf("Hash rate is: %d\r\n",counter)
+        pc.printf("Hash rate is: %d\r\n",counter);
         counter=0;
     }
 
@@ -146,25 +141,23 @@ void HashRate(){
     
 //Main
 int main() {
-    uint8_t sequence[] = {0x45,0x6D,0x62,0x65,0x64,0x64,0x65,0x64,
-                        0x20,0x53,0x79,0x73,0x74,0x65,0x6D,0x73,
-                        0x20,0x61,0x72,0x65,0x20,0x66,0x75,0x6E,
-                        0x20,0x61,0x6E,0x64,0x20,0x64,0x6F,0x20,
-                        0x61,0x77,0x65,0x73,0x6F,0x6D,0x65,0x20,
-                        0x74,0x68,0x69,0x6E,0x67,0x73,0x21,0x20,
-                        0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
-                        0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};
-                        
-    uint64_t* key = (uint64_t*)&sequence[48];
-    uint64_t* nonce = (uint64_t*)&sequence[56];
-    uint8_t hash[32];
+
+        uint8_t sequence[] = {0x45,0x6D,0x62,0x65,0x64,0x64,0x65,0x64,
+                0x20,0x53,0x79,0x73,0x74,0x65,0x6D,0x73,
+                0x20,0x61,0x72,0x65,0x20,0x66,0x75,0x6E,
+                0x20,0x61,0x6E,0x64,0x20,0x64,0x6F,0x20,
+                0x61,0x77,0x65,0x73,0x6F,0x6D,0x65,0x20,
+                0x74,0x68,0x69,0x6E,0x67,0x73,0x21,0x20,
+                0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,
+                0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00};      
+        uint64_t* key = (uint64_t*)&sequence[48];
+        uint64_t* nonce = (uint64_t*)&sequence[56];
+        uint8_t hash[32];
     
     const int32_t PWM_PRD = 2500;
     MotorPWM.period_us(PWM_PRD);
     MotorPWM.pulsewidth_us(PWM_PRD);
     
-    //Initialise the serial port
-    Serial pc(SERIAL_TX, SERIAL_RX);
     pc.printf("Hello\n\r");
     
     //Run the motor synchronisation
@@ -177,11 +170,16 @@ int main() {
     ISR();
     
     Ticker tick;
-    tick.attach(&HashRate,1)
+    tick.attach(&HashRate,1);
     
     //tick will interrupt it to call HashRate
     while (1) {
-                computaion();
+        SHA256::computeHash(hash,sequence,64);
+        if(hash[0]==0 && hash[1]==0){
+            pc.printf("Nonce is: %x\r\n",*nonce);
+        }
+        *nonce+=1;
+        counter+=1;
 //              pc.printf("state %d\n\r", intState);
     }
 }
