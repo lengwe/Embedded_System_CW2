@@ -14,6 +14,9 @@ volatile int8_t orState = 0;    //Rotot offset at motor state 0
 volatile int8_t intState = 0;
 volatile int8_t intStateOld = 0;
 
+//Initialise the serial port
+Serial pc(SERIAL_TX, SERIAL_RX);
+
 //Status LED
 DigitalOut led1(LED1);
 
@@ -90,7 +93,7 @@ void setup(){
     MotorPWM.pulsewidth_us(PWM_PRD);
     
     //Initialise the serial port
-    Serial pc(SERIAL_TX, SERIAL_RX);
+    //Serial pc(SERIAL_TX, SERIAL_RX);
     pc.printf("Hello\n\r");
     
     //Run the motor synchronisation

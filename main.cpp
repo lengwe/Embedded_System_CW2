@@ -7,7 +7,7 @@ int main(){
     ISR();
     
     Ticker tick;
-    tick.attach(&HashRate,1)
+    tick.attach(&HashRate,1);
     //tick will interrupt it to call HashRate
     
     while(1){

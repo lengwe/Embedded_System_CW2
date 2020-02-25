@@ -43,9 +43,13 @@ State   L1  L2  L3
 6       -   -   -
 7       -   -   -
 */
+extern Serial pc;
 
 extern void motorOut(int8_t driveState);
 extern int8_t motorHome();
 extern void GetSate_interrupt();
 extern void ISR(void);
 extern void setup();
+
+
+#endif
