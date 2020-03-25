@@ -2,6 +2,7 @@
 #define _motor_h_
 
 #include "mbed.h"
+#include "bitcoin.h"
 
 //Photointerrupter input pins
 #define I1pin D3
@@ -31,6 +32,8 @@
 #define TP1pin D13
 #define TP2pin A2
 
+#define MIN(a,b) (((a)<(b))?(a):(b))
+#define MAX(a,b) (((a)>(b))?(a):(b))
 //Mapping from sequential drive states to motor phase outputs
 /*
 State   L1  L2  L3
@@ -43,13 +46,24 @@ State   L1  L2  L3
 6       -   -   -
 7       -   -   -
 */
-extern Serial pc;
+//extern Serial pc;
+extern float max_vel;
+extern float rotation;
+extern volatile bool rotationEnter;
+extern PwmOut MotorPWM;
 
+extern Thread motorCtrlT;
+extern volatile int32_t position;
+extern volatile float velocity;
 extern void motorOut(int8_t driveState);
 extern int8_t motorHome();
 extern void GetSate_interrupt();
 extern void ISR(void);
 extern void setup();
+extern void motorCtrlFn();
+void motorCtrlTick();
+float RotationControl();
+float VelocityControl();
 
 
 #endif
