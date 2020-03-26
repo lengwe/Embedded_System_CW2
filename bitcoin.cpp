@@ -28,14 +28,14 @@ void serialISR(){
     uint8_t* newChar = inCharQ.alloc();
     *newChar = pc.getc();
     inCharQ.put(newChar);
-    }
+}
 
-void putMessage(uint8_t type, uint64_t variable){
+void putMessage(uint8_t type, double variable){
     mail_tc *mail = mail_box.alloc();
     mail->code = type;
     mail->data = variable; 
     mail_box.put(mail);
-    }
+}
 
 void computation(){
     uint8_t hash2[32];
@@ -45,7 +45,7 @@ void computation(){
     SHA256::computeHash(hash2,sequence,64);
     if(hash2[0]==0 && hash2[1]==0){
 //          pc.printf("Nonce is: 0x%x\r\n",*nonce);
-        putMessage(NONCE, *nonce);
+        putMessage(NONCE, (double)*nonce);
     }
     *nonce = *nonce + 1;
     counter +=1;
