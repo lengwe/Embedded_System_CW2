@@ -16,11 +16,12 @@ volatile int8_t intStateOld = 0;
 volatile int32_t position = 0;
 
 volatile int32_t speedController;
-volatile float yr;
+volatile float yr = 0.0;
 
 volatile float velocity;
 float max_vel=100;
 float rotation;
+float sign;
 
 int prevPosition = 0;
 int startPosition = 0;
@@ -33,10 +34,10 @@ float speed_err = 0;
 float position_tar = 0;
 float prevRotation = 0;
 float kpr = 0.005;
-float kdr = 0.014;
+float kdr = 0.011;
 float kps = 0.07;
 float kis = 0.0004;
-float kd = 20;
+float v_const = 0.013;
 float integral_speed_err = 0.0;
 float integral_position_err = 0.0;
 
@@ -100,10 +101,9 @@ void motorOut(int8_t driveState){
     
 
 //    MotorPWM.write(0.5f);
-//      MotorPWM.write(y);
-//      MotorPWM.period(0.002f);
       MotorPWM.write(y);
-//    MotorPWM.pulsewidth_us(y);
+//      MotorPWM.period(0.002f);
+//    MotorPWM.pulsewidth_us(1000);
     }
     
     //Convert photointerrupter inputs to a rotor state
@@ -143,9 +143,10 @@ void ISR(void){
     }
 
 void setup(){
-    //MotorPWM.period_us(PWM_PRD);
-//    MotorPWM.pulsewidth_us(PWM_PRD);
+    MotorPWM.period_us(PWM_PRD);
     MotorPWM.period_ms(2);
+//    MotorPWM.pulsewidth_us(PWM_PRD);
+
     
     //Initialise the serial port
     //Serial pc(SERIAL_TX, SERIAL_RX);
@@ -153,12 +154,12 @@ void setup(){
     
     //Run the motor synchronisation
     orState = motorHome();
-//    motorOut(orState);
+    //motorOut((readRotorState()+lead+6)%6);
     intStateOld = readRotorState();
     pc.printf("Rotor origin: %x\n\r",orState);
     //orState is subtracted from future rotor state inputs to align rotor and motor states
 
-    //MotorPWM.pulsewidth_us(PWM_PRD);
+//    MotorPWM.pulsewidth_us(PWM_PRD);
     //Poll the rotor state and set the motor outputs accordingly to spin the motor
     }
     
@@ -199,7 +200,7 @@ float VelocityControl(){
     ys= abs(ys);*/
     
     //////////////////////fucking easy version/////////////////////////
-    float sign = (velocity>=0)? 1 : -1;
+    sign = (velocity>=0)? 1 : -1;
     speed_err = velocity*sign - max_vel;
     integral_speed_err = integral_speed_err + speed_err/0.1;
     if(integral_speed_err > 880){
@@ -210,8 +211,8 @@ float VelocityControl(){
     }
     
     ys = kps*(speed_err)+kis*integral_speed_err;
-    lead = (ys<0) ? -2 : 2;
-    ys = (ys<0) ? -ys : ys;
+    lead = (ys<0) ? -lead : lead;
+    ys = (ys<0) ? -ys:0;
     ys = (ys > maxPWM) ? maxPWM : ys;
     //pc.printf("ys %f, max_vel %f, yr %f, velocity %f, tar_rotations %f, position err %F\n\r", ys, max_vel, yr, velocity, rotation, position_err);
     ///////////////////////////////////////////////
@@ -228,15 +229,18 @@ float RotationControl(){
     }
     
     lead = (rotation < 0) ? -2 : 2;
+    position_err = position_tar - (float)abs(position - startPosition);
     diff_position_err = (float)(position_err - oldPosition_err);
+    //diff_position_err = (diff_position_err<0) ? -diff_position_err:diff_position_err;
     oldPosition_err = position_err;
-    yr = kpr * position_err + kdr*diff_position_err-0.014*(float)abs((int)velocity);
+    yr = kpr * position_err + kdr*diff_position_err-v_const*(float)abs((int)velocity);
+    pc.printf("lead: %d ",lead);
     lead = (yr < 0) ? -lead : lead;
     yr = (yr>=0) ? yr : -yr;
 //    yr = abs((int)yr);
     yr = (yr > maxPWM) ? maxPWM : yr;
     
-//    pc.printf("yr %f, tar_ro %f, max_v %f, velocity %f, ys %f, position err %F\n\r",yr, rotation, max_vel, velocity, ys, position_err);
+    pc.printf("yr %f, tar_ro %f, max_v %f, velocity %f, ys %f, l: %d, position err %F\n\r",yr, rotation, max_vel, velocity, ys,lead, position_err);
     return yr;
 }
  
@@ -259,7 +263,7 @@ void motorCtrlFn(){
             // wait for signal to occur
 //            motorCtrlT.signal_wait(0x1);
             
-            position_err = position_tar - (float)abs(position) + (float)abs(startPosition);
+//            pc.printf("%f",position_tar);
             velocity = ((float)position - (float)prevPosition)*10.0/6.0;
 //            pc.printf("actual velocity is %f, prevPosition is %d, position %d\n\r", velocity, prevPosition, position);
             // if rotations or max velocity is set and the motor is stopped, start rotating.
@@ -272,11 +276,12 @@ void motorCtrlFn(){
             }
                 
             
-            if(velocity == 0 && rotationEnter){
-                motorOut(readRotorState());
-//                MotorPWM.write(1.0f);
-                
-            }
+//            if(velocity == 0 && rotationEnter){
+//                  motorOut((readRotorState()-orState+lead+6)%6);
+////                motorOut(readRotorState());
+////                MotorPWM.wr?ite(1.0f);
+//                
+//            }
             
     //        pc.printf("position %d, prevPosition %d, velocity %f\n\r", position, prevPosition, velocity);
 
@@ -309,10 +314,20 @@ void motorCtrlFn(){
             } else if (rotation != 0 && max_vel != 0){
                 v = VelocityControl();
                 r = RotationControl();
+                motorOut((readRotorState()-orState+lead+6)%6);                
+//                y = ((max_vel>30)&&((sign*velocity) < max_vel) && (position_err > 50)) ? MAX(v, r): MIN(v, r);
                 
-//                y = (velocity < 0) ? MAX(v, r): MIN(v, r);
-                y = MIN(v, r);
+                if(max_vel>30){
+                     y = (((sign*velocity) < 18) && (position_err > 30)) ? MAX(v, r): MIN(v, r);
+                    }
+                else{
+                     y = (((sign*velocity) < max_vel/2) && (position_err > 30)) ? MAX(v, r): MIN(v, r);
+                    }
+//                y = MIN(v, r);
+            
+               
             }
+//            MotorPWM.write(y);
 //            pc.printf("max_vel:%F \n\r",max_vel);
             //MotorPWM.write(y);
 //            pc.printf("ys %f, max_vel %f, yr %f, velocity %f, tar_rotations %f, position err %F\n\r", ys, max_vel, yr, velocity, rotation, position_err);
