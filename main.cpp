@@ -5,8 +5,9 @@
 #include "motor.h"
 #include "bitcoin.h"
 #include "tune.h"
+#include "msg.h"
 
-Thread thread;
+/*Thread thread;
 Thread receiveMessage;
 //Thread motorCtrlT (osPriorityNormal,1024);
 char command[18];
@@ -111,7 +112,7 @@ void receivemsg(){
             i=i+1;
         }
     }
-}
+}*/
 
 
 int main(){
