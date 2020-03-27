@@ -16,21 +16,20 @@ void getmsg(){
         mail_tc *mail = (mail_tc*)evt.value.p;
         switch(mail->code){
             case(NONCE):
-                //pc.printf("Nonce is: 0x%llx\n\r",mail->data);
+//                pc.printf("Nonce is: 0x%llx\n\r",mail->data);
+                pc.printf("N%016llX\n\r",mail->data_64);
                 break;
             case(COUNT):
-               // pc.printf("Hash rate is: %llu\n\r",mail->data);
+                pc.printf("Hash rate is: %d\n\r",mail->data_64);
                 break;
             case(MAX_VEL):
-//                max_vel = mail->data;
-                //pc.printf("Velocity is %d",max_vel);
+                pc.printf("Max Velocity is %f\n\r",mail->data);
                 break;
             case(ROTATE):
-//                rotation = (double)mail->data;
-                  //pc.printf("Rotation is: %d",rotation);
+                  pc.printf("Target Rotation is: %f\n\r",mail->data);
                 break;
             case(ACT_VELOCITY):
-               // pc.printf("actual velocity is %f\n\r", mail->data);
+                pc.printf("Actual velocity is %f\n\r", mail->data);
                 break;
             case(MELODY):
 //              pc.printf("")
@@ -49,7 +48,7 @@ void getmsg(){
 void receivemsg(){ 
 //    string s;
     uint16_t hex;
-    int max_velocity;
+    float max_velocity;
     
     pc.attach(&serialISR);
     while(1){
@@ -77,30 +76,23 @@ void receivemsg(){
                     newKey_mutex.lock();
                     newKey = receivedKey;
                     newKey_mutex.unlock();
-                    putMessage(KEY, (double)newKey);
+                    putMessage(KEY, 0, newKey);
                     break;
                 case 'V':
-                    sscanf(command,"V%d",&max_velocity);
+                    sscanf(command,"V%f",&max_velocity,0);
                     max_vel = max_velocity;
 //                    pc.printf("max_vel is %d \n\r", max_velocity);
-                    putMessage(MAX_VEL, (double)max_velocity);
+                    putMessage(MAX_VEL, max_velocity,0);
                     break;
                 case 'R':
                     rotationEnter=true;
-//                    if(command[1] == '-') {
-//                        sscanf(command, "R-%f", &rotation);
-//                        rotation = -rotation;
-//                    }
-//                    else {
-//                        sscanf(command, "R%f", &rotation);
-////                        pc.printf("Rotation is: %F",rotation);
-//                    }
                     sscanf(command, "R%f", &rotation);
-                    putMessage(ROTATE, (double)rotation);
+                    putMessage(ROTATE, rotation,0);
                     break;
                 case 'T':
                     sscanf(command,"T%s", tune);
-                    putMessage(ROTATE, (uint64_t)tune);
+                    note_extraction();
+//                    putMessage(ROTATE, (uint64_t)tune);
                     break;
                 }
                 i=0;
