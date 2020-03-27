@@ -28,18 +28,17 @@ typedef struct {
     /*uint32_t count;
     uint64_t nonce;*/
     uint8_t code;
-    double data; 
-
+    float data; 
+    uint64_t data_64;
 }mail_tc;
 
 extern mail_tc mail_t;
 extern Mail<mail_tc,8> mail_box;
 extern Mail<uint8_t,8> inCharQ;
 
-
 extern void computation();
 extern void HashRate(); 
-extern void putMessage(uint8_t type, double variable);
+extern void putMessage(uint8_t type, float variable, uint64_t variable_64);
 extern void serialISR();
 
 #endif
