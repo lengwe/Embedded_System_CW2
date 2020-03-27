@@ -30,29 +30,32 @@ void serialISR(){
     inCharQ.put(newChar);
 }
 
-void putMessage(uint8_t type, double variable){
+void putMessage(uint8_t type, float variable, uint64_t variable_64){
     mail_tc *mail = mail_box.alloc();
     mail->code = type;
     mail->data = variable; 
+    mail->data_64 = variable_64;
     mail_box.put(mail);
 }
 
 void computation(){
     uint8_t hash2[32];
-//    newKey_mutex.lock();
-//    *key = newKey;
-//    newKey_mutex.unlock();
+    if(*key != newKey){
+        newKey_mutex.lock();
+        *key = newKey;
+        newKey_mutex.unlock();
+    }
     SHA256::computeHash(hash2,sequence,64);
     if(hash2[0]==0 && hash2[1]==0){
-//          pc.printf("Nonce is: 0x%x\r\n",*nonce);
-        putMessage(NONCE, (double)*nonce);
+        putMessage(NONCE, 0, *nonce);
     }
     *nonce = *nonce + 1;
     counter +=1;
 }
 
 void HashRate(){
-        putMessage(COUNT, (uint64_t)counter);
+        putMessage(COUNT, 0, (uint64_t)counter);
+//        pc.printf("Count: %d\r\n", counter);
         counter=0;
-    }
+}
     
