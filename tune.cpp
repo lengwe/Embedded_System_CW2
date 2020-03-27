@@ -16,37 +16,37 @@ void note_extraction(){
     int j = 0;
     int m = 0;
     memset(index, -1 , sizeof(index));
-//    pc.printf("note_extraction");
+    
     while(tune[i]!=0){
 //        pc.printf("%c\r\n",tune[i]);
         switch(tune[i]){
             case 'A':
                 index[j] = A;
-                pc.printf("A%d",index[j]);
+//                pc.printf("A%d",index[j]);
                 break;
             case 'B':
                 index[j] = B;
-                pc.printf("B%d",index[j]);
+//                pc.printf("B%d",index[j]);
                 break;     
             case 'C':
                 index[j] = C;
-                pc.printf("C%d",index[j]);
+//                pc.printf("C%d",index[j]);
                 break;
             case 'D':
                 index[j] = D;
-                pc.printf("D%d",index[j]);
+//                pc.printf("D%d",index[j]);
                 break;  
             case 'E':
                 index[j] = E;
-                pc.printf("E%d",index[j]);
+//                pc.printf("E%d",index[j]);
                 break;  
             case 'F':
                 index[j] = F;
-                pc.printf("F%d",index[j]);
+//                pc.printf("F%d",index[j]);
                 break;    
             case 'G':
                 index[j] = G; 
-                pc.printf("G%d",index[j]);  
+//                pc.printf("G%d",index[j]);  
                 break;
             case '#':
                 index[j]+=1;
@@ -65,7 +65,7 @@ void note_extraction(){
                     j+=1;   
                 }
                 else{
-                    putMessage(ERROR,0);    
+                    putMessage(ERROR,0,0);    
                 }
                 break;
         }
