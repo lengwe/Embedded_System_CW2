@@ -7,23 +7,28 @@
 #include "tune.h"
 #include "msg.h"
 
+
+Thread receiveMessage(osPriorityNormal,1024);
+Thread getMessage(osPriorityNormal,1024);
+Thread melody(osPriorityNormal,1024);
+Thread motorCtrlT (osPriorityHigh,1024);
+//Thread c(osPriorityNormal,1024);
+
 int main(){
     setup();
     ISR();
     
     Ticker tick;
-//    thread.start(callback(putMessage);
-    tick.attach(&HashRate, 1.0);
-    //tick will interrupt it to call HashRate
-    thread.start(getmsg);
+    
+    getMessage.start(getmsg);
     receiveMessage.start(receivemsg);
-    motorCtrlT.start(callback(motorCtrlFn));
-    melody.start(callback(playMelody));
-    
+    motorCtrlT.start(motorCtrlFn);
+    melody.start(playMelody);
+//    c.start(computation); 
+
+    tick.attach(&HashRate, 1.0);
+ 
     while(1){
-        
         computation(); 
-          
     }
-    
 }
