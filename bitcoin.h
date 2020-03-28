@@ -2,6 +2,7 @@
 #define _bitcoin_h_
 #include <string>
 #include "mbed.h"
+#include "msg.h"
 //#include "motor.h"
 #include "./Crypto/hash/SHA256.h"
 
@@ -11,10 +12,7 @@
 #define MAX_VEL 4
 #define ROTATE 5
 #define ACT_VELOCITY 6
-#define MELODY 7
-#define ERROR 8
-
-extern RawSerial pc;
+#define ERROR 7
 
 //extern uint8_t sequence[];
 extern volatile uint64_t* key;
@@ -24,21 +22,10 @@ extern volatile uint32_t counter;
 extern uint64_t newKey;
 extern Mutex newKey_mutex;
 
-typedef struct {
-    /*uint32_t count;
-    uint64_t nonce;*/
-    uint8_t code;
-    float data; 
-    uint64_t data_64;
-}mail_tc;
-
-extern mail_tc mail_t;
-extern Mail<mail_tc,8> mail_box;
-extern Mail<uint8_t,8> inCharQ;
 
 extern void computation();
 extern void HashRate(); 
-extern void putMessage(uint8_t type, float variable, uint64_t variable_64);
-extern void serialISR();
+
+
 
 #endif
