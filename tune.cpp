@@ -9,7 +9,7 @@ int index[17] = {-1};
 Mutex pwm_lock;
 
 
-Thread melody (osPriorityNormal,1024);
+//Thread melody (osPriorityNormal,1024);
 
 void note_extraction(){
     int i = 0;
@@ -18,7 +18,6 @@ void note_extraction(){
     memset(index, -1 , sizeof(index));
     
     while(tune[i]!=0){
-//        pc.printf("%c\r\n",tune[i]);
         switch(tune[i]){
             case 'A':
                 index[j] = A;
@@ -54,9 +53,6 @@ void note_extraction(){
             case '^':
                 index[j]-=1;
                 break;
-//            case '0':
-//                tune[49] = {0}; 
-//                break;
             default:
 //                pc.printf("index: %d\r\n",index[i]);
                 if(tune[i]>='1'&&tune[i]<='8'){
@@ -72,26 +68,22 @@ void note_extraction(){
         i+=1;
     }    
     memset(tune, 0, sizeof(tune));
-//    tune[49] = {0};
 }
 
 void playMelody(){
     while(1){
         int k=0;
+        ThisThread::sleep_for(1);
         
         while(index[k]!=-1){
-//            pc.printf("melody");
-//            pc.printf("%c",tune[k]);
             float duration = 1.0/seconds[k];
             float time_period = 1.0/freq[index[k]];
-//            pc.printf("k: %d, duration: %f, period: %f \r\n",k,duration,time_period);
+            
             pwm_lock.lock();
             MotorPWM.period(time_period);
             pwm_lock.unlock();
-            wait(duration);
+            ThisThread::sleep_for(duration*1000.0);
             k+=1;
         }
-//        memset(index, 0, sizeof(index));
-//        index[17] = {0};
     }
 }
