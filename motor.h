@@ -3,6 +3,7 @@
 
 #include "mbed.h"
 #include "bitcoin.h"
+#include "msg.h"
 
 //Photointerrupter input pins
 #define I1pin D3
@@ -47,7 +48,7 @@ State   L1  L2  L3
 7       -   -   -
 */
 //extern Serial pc;
-extern float max_vel;
+//extern float max_vel;
 extern float rotation;
 extern volatile bool rotationEnter;
 extern PwmOut MotorPWM;
