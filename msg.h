@@ -10,8 +10,8 @@
 
 extern RawSerial pc;
 
-extern Thread getMessage;
-extern Thread receiveMessage;
+extern Thread getMessageT;
+extern Thread receiveMessageT;
 
 typedef struct {
     uint8_t code;
@@ -22,6 +22,16 @@ typedef struct {
 extern mail_tc mail_t;
 extern Mail<mail_tc,8> mail_box;
 extern Mail<uint8_t,8> inCharQ;
+
+extern float max_velocity;
+extern float max_rotation;
+
+extern bool velocityEnter;
+extern bool tuneEnter;
+
+extern Mutex rotation_mutex;
+extern Mutex velocity_mutex;
+extern Mutex tune_mutex;
 
 extern void getmsg();
 extern void receivemsg();
