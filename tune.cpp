@@ -17,6 +17,7 @@ void note_extraction(){
     int m = 0;
     memset(index, -1 , sizeof(index));
     
+    tune_mutex.lock();
     while(tune[i]!=0){
         switch(tune[i]){
             case 'A':
@@ -66,7 +67,8 @@ void note_extraction(){
                 break;
         }
         i+=1;
-    }    
+    }  
+    tune_mutex.unlock();  
     memset(tune, 0, sizeof(tune));
 }
 
@@ -75,15 +77,15 @@ void playMelody(){
         int k=0;
         ThisThread::sleep_for(1);
         
+        tune_mutex.lock();
         while(index[k]!=-1){
             float duration = 1.0/seconds[k];
             float time_period = 1.0/freq[index[k]];
             
-            pwm_lock.lock();
             MotorPWM.period(time_period);
-            pwm_lock.unlock();
             ThisThread::sleep_for(duration*1000.0);
             k+=1;
         }
+        tune_mutex.unlock();
     }
 }
