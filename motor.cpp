@@ -34,7 +34,7 @@ float kpr = 0.005;
 float kdr = 0.033;
 //float kps = 0.013;
 //float kis = 0.0006;
-float kps = 0.3;
+float kps = 0.55;
 float kis = 0.0006;
 float v_const = 0.013;
 float integral_speed_err = 0.0;
@@ -181,13 +181,6 @@ float VelocityControl(){
 float RotationControl(){
     float yr;
     
-    // store the position from which start to count the number of rotations.
-    if(rotationEnter){
-        startPosition = position;
-        position_tar = abs(rotation) *6;
-        rotationEnter = false;
-    }
-    
     lead = (rotation < 0) ? -2 : 2;
     position_err = position_tar - (float)abs(position - startPosition);
     diff_position_err = (float)(position_err - oldPosition_err);
@@ -237,8 +230,23 @@ void motorCtrlFn(){
                 counter = counter + 1;
             }
 
-           // if (rotation == 0 && max_vel != 0){
-//            y = VelocityControl();
+            if(velocityEnter==true){
+                velocity_mutex.lock();
+                max_vel = max_velocity;
+                velocity_mutex.unlock();
+                velocityEnter=false;
+            }
+            
+            // store the position from which start to count the number of rotations.
+            else if(rotationEnter){
+                rotation_mutex.lock();
+                rotation = max_rotation;
+                rotation_mutex.unlock();
+                startPosition = position;
+                position_tar = abs(rotation)*6;
+                rotationEnter = false;
+            }
+            
             if (rotation != 0 && max_vel != 0){
                 v = VelocityControl();
                 r = RotationControl();
@@ -257,7 +265,5 @@ void motorCtrlFn(){
 //            pc.printf("ys %f, max_vel %f, yr %f, velocity %f, tar_rotations %f, position err %F\n\r", ys, max_vel, yr, velocity, rotation, position_err);
             startTime = t.read_us();
             prevPosition = position;
-//            pc.printf("lol");
-//        }
     }
 }
