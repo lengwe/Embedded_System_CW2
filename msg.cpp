@@ -4,11 +4,20 @@ RawSerial pc(SERIAL_TX, SERIAL_RX);
 
 char command[18];
 uint64_t receivedKey;
+float max_velocity;
+float max_rotation;
+
+bool velocityEnter = false;
+    
 int i = 0;
 int j = 0;
 
 Mail<mail_tc,8> mail_box;
 Mail<uint8_t,8> inCharQ;
+
+Mutex rotation_mutex;
+Mutex velocity_mutex;
+Mutex tune_mutex;
 
 
 void getmsg(){
@@ -18,11 +27,10 @@ void getmsg(){
         mail_tc *mail = (mail_tc*)evt.value.p;
         switch(mail->code){
             case(NONCE):
-//                pc.printf("Nonce is: 0x%llx\n\r",mail->data);
                 pc.printf("N%016llX\n\r",mail->data_64);
                 break;
             case(COUNT):
-//                pc.printf("Hash rate is: %d\n\r",mail->data_64);
+                pc.printf("Hash rate is: %d\n\r",mail->data_64);
                 break;
             case(KEY):
                 pc.printf("K%016llX\n\r",mail->data_64);
@@ -34,7 +42,7 @@ void getmsg(){
                   pc.printf("Target Rotation is: %f\n\r",mail->data);
                 break;
             case(ACT_VELOCITY):
-                pc.printf("Actual velocity is %f , ", mail->data);
+                pc.printf("Actual velocity is %f\n\r", mail->data);
                 break;
             case 8:
                 pc.printf("Pos_err is %f\n\r", mail->data);
@@ -67,7 +75,6 @@ void putMessage(uint8_t type, float variable, uint64_t variable_64){
 void receivemsg(){ 
 //    string s;
     uint16_t hex;
-    float max_velocity;
     
     pc.attach(&serialISR);
     while(1){
@@ -78,16 +85,12 @@ void receivemsg(){
         inCharQ.free(newChar);
         //i+=1;
         if(command[i]=='\r'){
-//            pc.printf("in!");
             wait_us(100);
-//            ThisThread::sleep_for(0.001);
-//            pc.printf("hex2 is %x",hex);
 
             command[i+1] = '\0' ;
             switch(command[0]){
                 case 'K':
                     sscanf(command,"K%hx",&hex);
-//                    pc.printf("hex is %x \n\r",hex);
                     receivedKey = (uint64_t)hex;
                     newKey_mutex.lock();
                     newKey = receivedKey;
@@ -95,14 +98,18 @@ void receivemsg(){
                     putMessage(KEY, 0, newKey);
                     break;
                 case 'V':
-                    sscanf(command,"V%f",&max_velocity,0);
-                    max_vel = max_velocity;
+                    velocityEnter=true;
+                    velocity_mutex.lock();
+                    sscanf(command,"V%f",&max_velocity);
+                    velocity_mutex.unlock();
                     putMessage(MAX_VEL, max_velocity,0);
                     break;
                 case 'R':
                     rotationEnter=true;
-                    sscanf(command, "R%f", &rotation);
-                    putMessage(ROTATE, rotation,0);
+                    rotation_mutex.lock();
+                    sscanf(command, "R%f", &max_rotation);
+                    rotation_mutex.unlock();
+                    putMessage(ROTATE, max_rotation,0);
                     break;
                 case 'T':
                     sscanf(command,"T%s", tune);
