@@ -12,7 +12,6 @@ Thread receiveMessage(osPriorityNormal,1024);
 Thread getMessage(osPriorityNormal,1024);
 Thread melody(osPriorityNormal,1024);
 Thread motorCtrlT (osPriorityHigh,1024);
-//Thread c(osPriorityNormal,1024);
 
 int main(){
     setup();
@@ -24,7 +23,6 @@ int main(){
     receiveMessage.start(receivemsg);
     motorCtrlT.start(motorCtrlFn);
     melody.start(playMelody);
-//    c.start(computation); 
 
     tick.attach(&HashRate, 1.0);
  

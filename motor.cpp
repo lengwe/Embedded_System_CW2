@@ -174,7 +174,7 @@ float VelocityControl(){
     ys = kps*(speed_err)+kis*integral_speed_err;
     ys = (ys<0) ? -ys:0;
     ys = (ys > maxPWM) ? maxPWM : ys;
-    //pc.printf("ys %f, max_vel %f, yr %f, velocity %f, tar_rotations %f, position err %F\n\r", ys, max_vel, yr, velocity, rotation, position_err);
+
     return ys;
 }
 
@@ -191,7 +191,6 @@ float RotationControl(){
     yr = (yr>=0) ? yr : -yr;
     yr = (yr > maxPWM) ? maxPWM : yr;
     
-//    pc.printf("yr %f, tar_ro %f, max_v %f, velocity %f, ys %f, l: %d, position err %F\n\r",yr, rotation, max_vel, velocity, ys,lead, position_err);
     return yr;
 }
  
@@ -220,9 +219,8 @@ void motorCtrlFn(){
             // if rotations or max velocity is set and the motor is stopped, start rotating.
             if(counter == 9){
                 average_vel = average_vel/10;
-//                putMessage(ACT_VELOCITY,position_err,0);
                   putMessage(ACT_VELOCITY,average_vel,0);
-                  putMessage(8,position_err,0);
+//                  putMessage(8,position_err,0);
                 average_vel = 0.0;
                 counter = 0;
             }
@@ -262,7 +260,6 @@ void motorCtrlFn(){
              else{
                  y=0;
              }
-//            pc.printf("ys %f, max_vel %f, yr %f, velocity %f, tar_rotations %f, position err %F\n\r", ys, max_vel, yr, velocity, rotation, position_err);
             startTime = t.read_us();
             prevPosition = position;
     }

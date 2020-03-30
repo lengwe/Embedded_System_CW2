@@ -44,9 +44,9 @@ void getmsg(){
             case(ACT_VELOCITY):
                 pc.printf("Actual velocity is %f\n\r", mail->data);
                 break;
-            case 8:
-                pc.printf("Pos_err is %f\n\r", mail->data);
-                break;
+//            case 8:
+//                pc.printf("Pos_err is %f\n\r", mail->data);
+//                break;
             case(ERROR):
                 pc.printf("ERROR!!!");
                 break;
